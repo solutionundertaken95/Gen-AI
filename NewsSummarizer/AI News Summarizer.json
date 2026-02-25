@@ -1,0 +1,249 @@
+{
+  "name": "AI News Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            },
+            {},
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        -48
+      ],
+      "id": "14989a45-af31-44e4-b418-d0022b8eb958",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        64,
+        -48
+      ],
+      "id": "12c8bb3f-7415-42ed-b9c1-4accb2298f7d",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an AI news summarizer handling multiple categories.\nUse only the provided items. Do not invent content.\n\nOrganize by category and provide up to 3 AI news and up to 3 broader technology news.\n\nFormat exactly like this:\n\nHi there,\nHere's your Tech Brief:\n\nAI NEWS\n=======\nFor each AI-related item, output:\nHEADLINE IN ALL CAPS\nSummary in 1–2 sentences.\nLink: <paste link>\n\nTECHNOLOGY UPDATES\n==================\nFor each broader technology-related item, output:\nHEADLINE IN ALL CAPS\nSummary in 1–2 sentences.\nLink: <paste link>\n\nKeep it professional, concise, and easy to read."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        288,
+        -48
+      ],
+      "id": "4f2f6cbf-1e59-4b26-8293-f160d0fb8f3f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        368,
+        176
+      ],
+      "id": "f867fe7d-9586-44f2-8a2c-1d6dee2684e7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gosJF3SaO6FmUyjs",
+          "name": "Google Gemini(PaLM) Api account 6834"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "gokulsg02@gmail.com",
+        "subject": "Today's AI News for you",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        -48
+      ],
+      "id": "f50138f5-784b-46db-807b-1d6fa011ad1f",
+      "name": "Send a message",
+      "webhookId": "a5c75ff6-c7e2-417e-8ec9-c12bcc51c9a5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "eXTVOlfgTc9w1lU8",
+          "name": "Gmail account 1904"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -160,
+        -48
+      ],
+      "id": "aa3e503c-e8e0-4504-9478-d8123b1fdade",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "url": "https://aibusiness.com/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        -144
+      ],
+      "id": "cc2652a3-45c0-4208-b63c-d8ed5a1decc6",
+      "name": "AI News"
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        48
+      ],
+      "id": "12639140-433e-462f-8bd7-0fe0cde867c2",
+      "name": "Tech News"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI News",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Tech News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI News": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tech News": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4de8cb09-1119-4b1d-a1c4-a2bbcaa0cd3d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "969257b09ad2942bbaff2e2288304f4969030574d109cdeca05bf11f630884df"
+  },
+  "id": "HZpftOlijhzeM7r6",
+  "tags": [
+    {
+      "updatedAt": "2026-01-05T15:59:39.361Z",
+      "createdAt": "2026-01-05T15:59:39.361Z",
+      "id": "rFt1rgbDLnsTBNzc",
+      "name": "ai news summerizer"
+    }
+  ]
+}
